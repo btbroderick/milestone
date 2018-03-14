@@ -8,10 +8,11 @@ library(flexsurv)
 library(quadprog)
 library(Hmisc)
 library(msm) 
+library(VGAM)
 source(here::here("pgm","utilsBayes1.r"))
 source(here::here("pgm","utilsFreq.r"))
 source(here::here("pgm","utilsWts.r"))
-
+source(here::here("pgm", "helper.R"))
 ###########################################
 ### User Interface
 ###########################################
@@ -23,7 +24,10 @@ ui <- fluidPage(
     tabPanel("Main",
              sidebarPanel(
                numericInput("nE", label = "Landmark Event Number", value = NA),
-               numericInput("N", )
+               numericInput("N", label = "Number of simultions", value = NA),
+               dateInput("study_date",label = "Study start date", value = NA, format = "mm-dd-yyyy"),
+               tags$h6("Date format: mm-dd-yyyy"),
+               HTML("<br/>"),
                fileInput("inputfile", NULL, buttonLabel = "Upload", multiple = FALSE),
                tags$h6("*File upload format can be found in the 'About' tab")
              ),
@@ -45,7 +49,7 @@ server <- function(input, output, session) {
     if (is.null(read)){
       return()
     }
-    read_csv(read$datapath)
+    read_any_file(read$datapath)
   })
 }
 

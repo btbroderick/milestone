@@ -1,4 +1,9 @@
-read_my_file <- function(fp)
+zipped <- function(...)
+{
+  unlist(lapply(list(...), paste0, c("", ".gz", ".bz2", ".xz", ".zip")))
+}
+
+read_any_file <- function(fp)
 {
   ext <- tools::file_ext(fp)
   if(ext %in% zipped("csv"))
