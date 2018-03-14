@@ -1,7 +1,3 @@
-
-library("msm") #needed for truncated normal.
-
-
 #######################################
 #
 # weibTime() - generates random time to achieve a given number of events 

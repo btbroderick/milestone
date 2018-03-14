@@ -1,7 +1,3 @@
-library("quadprog")
-library("Hmisc")
-
-
 #######################################
 #
 # wtsFreq() - Estimates the prediction synthesis weights for the frequentist methods

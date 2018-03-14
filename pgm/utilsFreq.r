@@ -1,5 +1,3 @@
-library("flexsurv")
-
 #######################################
 #
 # lik() -Generates the MLE of the survival data for the 
