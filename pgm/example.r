@@ -25,7 +25,7 @@ nE<-775 # landmark event number
 
 ### STUDY SPECIFIC, THE CSV FILE SHOULD CONTAIN 3 COLUMN, ONSTUDY, EVENT_TIME, AND EVENT INDICATOR
 ### THE ONSTUDY AND EVENT TIME WILL NEED TO BE CONVERTED SO FIRST PATINET ON STUDY IS DAY 0 (NOT CALENDAR DATE )
-tempdat <- read.csv("c80702.csv")
+tempdat <- read.csv("sample.csv")
 
 dat <- cbind(tempdat[,1], tempdat[,2]*tempdat[,3])
 # FIRST COLUMN IS ONSTUDY
