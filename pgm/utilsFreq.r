@@ -113,8 +113,9 @@ getFreqVals<-function(dat,nE,MM=1000,shouldJT=1){
 getFreqInts<-function(dat,nE,MM=1000,alpha=.05,shouldJT=1){
   cTime<-max(dat)
   wP<-lik(dat,cTime,"weibull")[c(2,1)]
-  lnP<-lik(dat,cTime,"lnorm");
-  gP<-lik(dat,cTime,"gompertz"); gP<-abs(c(gP[2]/gP[1],gP[1]))
+  lnP<-lik(dat,cTime,"lnorm")
+  gP<-lik(dat,cTime,"gompertz")
+  gP<-abs(c(gP[2]/gP[1], gP[1]))
   llP<-lik(dat,cTime,"llogis")[c(2,1)]
   pW<-pLn<-pG<-pLL<-0
   lT<-length(dat[,1])/cTime

@@ -24,20 +24,22 @@ ui <- fluidPage(
     title = "Milestone",
     tabPanel("Main",
              sidebarPanel(
-               numericInput("nE", label = "Landmark Event Number", value = NA),
-               numericInput("N", label = "Number of simultions", value = NA),
-               dateInput("study_date",label = "Study start date", value = NA, format = "mm-dd-yyyy"),
+               numericInput("nE", label = "Landmark Event Number", value = NA, width = 300),
+               numericInput("N", label = "Number of simultions", value = NA, width = 300),
+               dateInput("study_date",label = "Study start date", value = NA, width = 300,format = "mm-dd-yyyy"),
                tags$h6("Date format: mm-dd-yyyy"),
                HTML("<br/>"),
-               fileInput("inputfile", NULL, buttonLabel = "Upload", multiple = FALSE),
+               fileInput("inputfile", NULL, buttonLabel = "Upload", multiple = FALSE, width = 300),
                tags$h6("*File upload format can be found in the 'About' tab")
              ),
              mainPanel(
                tabsetPanel(
-                 tabPanel(title = "Data View",
-                  dataTableOutput("data_view")
+                 tabPanel("Data View",
+                  dataTableOutput("data_view"),
+                  tags$h3(textOutput("data_checks"))
                  )
-               )
+               ),
+               tabPanel("Calculate Milestone")
              )
     ),
     tabPanel("About")
@@ -49,13 +51,31 @@ ui <- fluidPage(
 ##########################################
 
 server <- function(input, output, session) {
-  output$data_view <- renderTable({
+  
+  inputData <- eventReactive(input$inputfile, {
     read <- input$inputfile
     if (is.null(read)){
       return()
     }
     read_any_file(read$datapath)
   })
+  
+  data_check_text <- eventReactive(input$inputfile,{
+    if (is.numeric(inputData()[[1]]) & !anyNA(inputData()[[1]])) {
+      check1 <- "Column 1 is OK"
+      }
+    else {
+      "Bad"
+    }
+  })
+  
+  output$data_checks <- renderText({
+    data_check_text()
+  })
+  
+  output$data_view <- renderDataTable({
+    inputData()
+  }, rownames= FALSE)
 }
 
 ##########################################
