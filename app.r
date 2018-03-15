@@ -3,6 +3,7 @@
 ###########################################
 library(shiny)
 library(shinythemes)
+library(DT)
 library(tidyverse)
 library(flexsurv)
 library(quadprog)
@@ -32,7 +33,11 @@ ui <- fluidPage(
                tags$h6("*File upload format can be found in the 'About' tab")
              ),
              mainPanel(
-               tableOutput("data_view")
+               tabsetPanel(
+                 tabPanel(title = "Data View",
+                  dataTableOutput("data_view")
+                 )
+               )
              )
     ),
     tabPanel("About")
