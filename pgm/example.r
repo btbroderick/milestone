@@ -1,16 +1,15 @@
-library("stats")
-library("VGAM")
-#library("msm")
-#library("flexsurv")
-#library("Hmisc")
-
-
-### STUDY SPECIFIC, POINT TO THE WORKING DIRECTORY
-setwd('C:/Users/M150963/Dropbox/myResearch/eventForcasting/rprog/')
-
-source('utilsBayes1.r')
-source('utilsFreq.r')
-source('utilsWts.r')
+library(shiny)
+library(shinythemes)
+library(tidyverse)
+library(flexsurv)
+library(quadprog)
+library(Hmisc)
+library(msm) 
+library(VGAM)
+source(here::here("pgm","utilsBayes1.r"))
+source(here::here("pgm","utilsFreq.r"))
+source(here::here("pgm","utilsWts.r"))
+source(here::here("pgm", "helper.R"))
 
 rgompertz<-flexsurv::rgompertz
 dgompertz<-flexsurv::dgompertz
@@ -21,7 +20,7 @@ qgompertz<-flexsurv::qgompertz
 N <-1000 # number to simulate for the full data set.
 
 ### STUDY SPECIFIC, THE NUMBER OF EVENTS YOU ARE TRYING TO PREDICT
-nE<-775 # landmark event number
+nE<-1000 # landmark event number
 
 ### STUDY SPECIFIC, THE CSV FILE SHOULD CONTAIN 3 COLUMN, ONSTUDY, EVENT_TIME, AND EVENT INDICATOR
 ### THE ONSTUDY AND EVENT TIME WILL NEED TO BE CONVERTED SO FIRST PATINET ON STUDY IS DAY 0 (NOT CALENDAR DATE )
