@@ -4,6 +4,7 @@
 library(shiny)
 library(shinythemes)
 library(DT)
+library(markdown)
 library(tidyverse)
 library(flexsurv)
 library(quadprog)
@@ -48,7 +49,9 @@ ui <- fluidPage(
                )
              )
     ),
-    tabPanel("About")
+    tabPanel("About",
+             includeMarkdown(here::here("About.md"))
+    )
   )
 )
 
