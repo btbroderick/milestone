@@ -11,6 +11,8 @@ library(Hmisc)
 library(msm) 
 library(VGAM)
 library(rmeta)
+library(ggplot2)
+theme_set(theme_classic())
 source(here::here("pgm","utilsBayes1.r"))
 source(here::here("pgm","utilsFreq.r"))
 source(here::here("pgm","utilsWts.r"))
@@ -27,7 +29,7 @@ ui <- fluidPage(
              sidebarPanel(
                numericInput("nE", label = "Landmark Event Number", value = 1000, width = 300),
                numericInput("N", label = "Number of simultions", value = NA, width = 300),
-               dateInput("study_date",label = "Study start date", value = NA, width = 300,format = "mm-dd-yyyy"),
+               dateInput("study_date",label = "Study start date", value = NA, width = 300,format = "yyyy-dd-mm"),
                tags$h6("Date format: mm-dd-yyyy"),
                HTML("<br/>"),
                fileInput("inputfile", NULL, buttonLabel = "Upload", multiple = FALSE, width = 300),
@@ -41,7 +43,7 @@ ui <- fluidPage(
                  ),
                  tabPanel("Calculate Milestone",
                           actionButton("calculate", label = "Run Milestone Prediction"),
-                          plotOutput("forestPlot",width = "200%")
+                          plotOutput("forestPlot",width = "100%")
                  )
                )
              )
@@ -82,7 +84,7 @@ server <- function(input, output, session) {
       
       #Priors
       # Weibull prior, mean and varaince for lambda and k
-      wP< - c(lambda, 50, 1, 50)
+      wP <- c(lambda, 50, 1, 50)
       
       # Gompertz prior, mean and variance for eta and b
       b <- lambda*log(log(2)+1)/log(2)
@@ -109,19 +111,26 @@ server <- function(input, output, session) {
       mean <- c(freqRes[[1]], BayesRes[[1]])
       lower <- c(freqRes[[2]][,1], BayesRes[[2]][,1])
       upper <- c(freqRes[[2]][,2], BayesRes[[2]][,2])
-      methodText <- cbind(c("Freq-Weibull", "Freq-LogNormal", "Freq-Gompertz", "Freq-LogLogistic",
+      methodText <- c("Freq-Weibull", "Freq-LogNormal", "Freq-Gompertz", "Freq-LogLogistic",
                             "Freq-PredSyn(Avg)", "Freq-PredSyn(MSPE)", "Freq-PredSyn(Vote)",
                             "Bayes-Weibull", "Bayes-LogNormal", "Bayes-Gompertz", "Bayes-LogLogistic",
-                            "Bayes-PredSyn(Avg)", "Bayes-PredSyn(MSPE)", "Bayes-PredSyn(Vote)"), rep(" ", 14))
+                            "Bayes-PredSyn(Avg)", "Bayes-PredSyn(MSPE)", "Bayes-PredSyn(Vote)")
       
       xmin <- floor(min(lower)/50)*50
       xmax <- ceil(max(upper)/50)*50
       
       incProgress(amount= .95, message = "Bayes Predictions")
       
-      
-      forestplot(methodText, mean, lower, upper, clip = c(xmin, xmax), zero=xmin,
-                 xlab=c("Days since first pt on-study"), xticks=seq(xmin, xmax, by=100), boxsize=0.3)
+      pplotdata <- data.frame(method = methodText,
+                              mean = as.Date(mean, origin = "2018-03-13") , 
+                              lower = as.Date(lower, origin = "2018-03-13"), 
+                              upper = as.Date(upper, origin = "2018-03-13"))
+      ggplot(plotdata, aes(x = method, y = mean, ymin = lower, ymax = upper)) +
+        geom_pointrange() +
+        geom_hline(yintercept = mean(plotdata$mean), linetype = 2) +
+        coord_flip() + 
+        scale_y_date(labels = date_format("%d/%m/%Y")) +
+        labs(y = "Days since first patient enrolled", x = "") 
       
       
     })
