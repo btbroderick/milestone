@@ -29,7 +29,6 @@ ui <- fluidPage(
     tabPanel("Main",
              sidebarPanel(
                numericInput("nE", label = "Landmark Event Number", value = 1000, width = 300),
-               numericInput("N", label = "Number of simulations", value = NA, width = 300),
                dateInput("study_date",label = "Study start date", value = NA, width = 300,format = "yyyy-dd-mm"),
                tags$h6("Date format: mm-dd-yyyy"),
                HTML("<br/>"),
