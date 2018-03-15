@@ -131,7 +131,7 @@ server <- function(input, output, session) {
         geom_hline(yintercept = mean(plotdata$mean), linetype = 2) +
         coord_flip() + 
         scale_y_date(labels = date_format("%d/%m/%Y")) +
-        labs(y = "Days since first patient enrolled", x = "") 
+        labs(y = "Predicted milestone date", x = "") 
       p
     })
     
