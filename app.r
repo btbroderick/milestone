@@ -80,7 +80,7 @@ server <- function(input, output, session) {
     withProgress(value = 0, message =  "Calculating", {
       nE <- input$nE # landmark event number
       tempdat <- inputData()
-      dat <- cbind(tempdat[[1]], tempdat[[2]]*tempdat[[3]])
+      dat <- cbind(tempdat[[1]], tempdat[[2]] * tempdat[[3]])
       lambda <- 0.0003255076
       
       #Priors
@@ -88,14 +88,14 @@ server <- function(input, output, session) {
       wP <- c(lambda, 50, 1, 50)
       
       # Gompertz prior, mean and variance for eta and b
-      b <- lambda*log(log(2)+1)/log(2)
+      b <- lambda * log(log(2) + 1) / log(2)
       gP <- c(1, 50, b, 50)
       
       # Lon-logistic prior, mean and variance for alpha and beta
-      llP <- c(1/lambda, 50, 1, 50)
+      llP <- c(1 / lambda, 50, 1, 50)
       
       # Log-normal prior, mean and varaince for mu and sigma
-      mu <- -1*log(lambda)-log(2)/2
+      mu <- -1 * log(lambda) - log(2) / 2
       lnP <- c(mu, 50, sqrt(log(2)), 50)
       
       cTime <- max(dat)
@@ -103,12 +103,12 @@ server <- function(input, output, session) {
       incProgress(amount= .1, message = "Initialized values")
       
       #Frequentist Predictions
-      freqRes <- getFreqInts(dat,nE,MM=200)
+      freqRes <- getFreqInts(dat, nE, MM=200)
       
       incProgress(amount= .65, message = "Frequentist Predictions")
       
       #Bayes predictions
-      BayesRes <- getBayesInt(dat,nE,wP,lnP,gP,llP,MM=800)
+      BayesRes <- getBayesInt(dat, nE, wP, lnP, gP, llP, MM = 800)
       mean <- c(freqRes[[1]], BayesRes[[1]])
       lower <- c(freqRes[[2]][,1], BayesRes[[2]][,1])
       upper <- c(freqRes[[2]][,2], BayesRes[[2]][,2])
@@ -117,15 +117,16 @@ server <- function(input, output, session) {
                             "Bayes-Weibull", "Bayes-LogNormal", "Bayes-Gompertz", "Bayes-LogLogistic",
                             "Bayes-PredSyn(Avg)", "Bayes-PredSyn(MSPE)", "Bayes-PredSyn(Vote)")
       
-      xmin <- floor(min(lower)/50)*50
-      xmax <- ceil(max(upper)/50)*50
+      xmin <- floor(min(lower) / 50) * 50
+      xmax <- ceil(max(upper) / 50) * 50
       
-      incProgress(amount= .95, message = "Bayes Predictions")
+      incProgress(amount = .95, message = "Bayes Predictions")
       
       pplotdata <- data.frame(method = methodText,
                               mean = as.Date(mean, origin = input$study_date) , 
                               lower = as.Date(lower, origin = input$study_date), 
                               upper = as.Date(upper, origin = input$study_date))
+      
       p <- ggplot(plotdata, aes(x = method, y = mean, ymin = lower, ymax = upper)) +
         geom_pointrange() +
         geom_hline(yintercept = mean(plotdata$mean), linetype = 2) +
