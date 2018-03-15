@@ -12,6 +12,7 @@ library(msm)
 library(VGAM)
 library(rmeta)
 library(ggplot2)
+library(plotly)
 theme_set(theme_classic())
 source(here::here("pgm","utilsBayes1.r"))
 source(here::here("pgm","utilsFreq.r"))
@@ -28,7 +29,7 @@ ui <- fluidPage(
     tabPanel("Main",
              sidebarPanel(
                numericInput("nE", label = "Landmark Event Number", value = 1000, width = 300),
-               numericInput("N", label = "Number of simultions", value = NA, width = 300),
+               numericInput("N", label = "Number of simulations", value = NA, width = 300),
                dateInput("study_date",label = "Study start date", value = NA, width = 300,format = "yyyy-dd-mm"),
                tags$h6("Date format: mm-dd-yyyy"),
                HTML("<br/>"),
@@ -43,7 +44,7 @@ ui <- fluidPage(
                  ),
                  tabPanel("Calculate Milestone",
                           actionButton("calculate", label = "Run Milestone Prediction"),
-                          plotOutput("forestPlot",width = "100%")
+                          plotOutput("forestPlot", width = "100%")
                  )
                )
              )
@@ -122,17 +123,16 @@ server <- function(input, output, session) {
       incProgress(amount= .95, message = "Bayes Predictions")
       
       pplotdata <- data.frame(method = methodText,
-                              mean = as.Date(mean, origin = "2018-03-13") , 
-                              lower = as.Date(lower, origin = "2018-03-13"), 
-                              upper = as.Date(upper, origin = "2018-03-13"))
-      ggplot(plotdata, aes(x = method, y = mean, ymin = lower, ymax = upper)) +
+                              mean = as.Date(mean, origin = input$study_date) , 
+                              lower = as.Date(lower, origin = input$study_date), 
+                              upper = as.Date(upper, origin = input$study_date))
+      p <- ggplot(plotdata, aes(x = method, y = mean, ymin = lower, ymax = upper)) +
         geom_pointrange() +
         geom_hline(yintercept = mean(plotdata$mean), linetype = 2) +
         coord_flip() + 
         scale_y_date(labels = date_format("%d/%m/%Y")) +
         labs(y = "Days since first patient enrolled", x = "") 
-      
-      
+      p
     })
     
   })
