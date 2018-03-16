@@ -74,10 +74,10 @@ BayesRes<-getBayesInt(dat,nE,wP,lnP,gP,llP,MM=800)
 mean <- c(freqRes[[1]], BayesRes[[1]])
 lower <- c(freqRes[[2]][,1], BayesRes[[2]][,1])
 upper <- c(freqRes[[2]][,2], BayesRes[[2]][,2])
-methodText <- cbind(c("Freq-Weibull", "Freq-LogNormal", "Freq-Gompertz", "Freq-LogLogistic", 
+methodText <- c("Freq-Weibull", "Freq-LogNormal", "Freq-Gompertz", "Freq-LogLogistic", 
                 "Freq-PredSyn(Avg)", "Freq-PredSyn(MSPE)", "Freq-PredSyn(Vote)", 
                 "Bayes-Weibull", "Bayes-LogNormal", "Bayes-Gompertz", "Bayes-LogLogistic", 
-                "Bayes-PredSyn(Avg)", "Bayes-PredSyn(MSPE)", "Bayes-PredSyn(Vote)"), rep(" ", 14))
+                "Bayes-PredSyn(Avg)", "Bayes-PredSyn(MSPE)", "Bayes-PredSyn(Vote)")
 
 library(rmeta)
 xmin<-floor(min(lower)/50)*50
@@ -85,4 +85,27 @@ xmax<-ceil(max(upper)/50)*50
 
 x <- forestplot(methodText, mean, lower, upper, clip = c(xmin, xmax), zero=xmin,
            xlab=c("Days since first pt on-study"), xticks=seq(xmin, xmax, by=100), boxsize=0.3)
+<<<<<<< HEAD
 x
+=======
+
+
+
+theme_set(theme_classic())
+output$plot <- renderPlotly({
+  plot_ly(mtcars, x = ~mpg, y = ~wt)
+})
+
+plotdata <- data.frame(method = methodText,
+                       mean = as.Date(mean, origin = "2018-03-13") , 
+                       lower = as.Date(lower, origin = "2018-03-13"), 
+                       upper = as.Date(upper, origin = "2018-03-13"))
+p <- ggplot(plotdata, aes(x = method, y = mean, ymin = lower, ymax = upper)) +
+  geom_pointrange() +
+  geom_hline(yintercept = mean(plotdata$mean), linetype = 2) +
+  coord_flip() + 
+  scale_y_date(labels = date_format("%d/%m/%Y")) +
+  labs(y = "Days since first patient enrolled", x = "") 
+
+print(p)
+  ggplotly(p)

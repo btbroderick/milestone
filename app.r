@@ -4,6 +4,7 @@
 library(shiny)
 library(shinythemes)
 library(DT)
+library(markdown)
 library(tidyverse)
 library(flexsurv)
 library(quadprog)
@@ -11,6 +12,9 @@ library(Hmisc)
 library(msm) 
 library(VGAM)
 library(rmeta)
+library(ggplot2)
+library(plotly)
+theme_set(theme_classic())
 source(here::here("pgm","utilsBayes1.r"))
 source(here::here("pgm","utilsFreq.r"))
 source(here::here("pgm","utilsWts.r"))
@@ -25,9 +29,8 @@ ui <- fluidPage(
     title = "Milestone",
     tabPanel("Main",
              sidebarPanel(
-               numericInput("nE", label = "Landmark Event Number", value = 1000, width = 300),
-               numericInput("N", label = "Number of simultions", value = NA, width = 300),
-               dateInput("study_date",label = "Study start date", value = NA, width = 300,format = "mm-dd-yyyy"),
+               numericInput("nE", label = "Landmark Event Number", value = 100, width = 300),
+               dateInput("study_date",label = "Study start date", value = NA, width = 300,format = "yyyy-dd-mm"),
                tags$h6("Date format: mm-dd-yyyy"),
                HTML("<br/>"),
                fileInput("inputfile", NULL, buttonLabel = "Upload", multiple = FALSE, width = 300),
@@ -41,12 +44,14 @@ ui <- fluidPage(
                  ),
                  tabPanel("Calculate Milestone",
                           actionButton("calculate", label = "Run Milestone Prediction"),
-                          plotOutput("forestPlot",width = "200%")
+                          plotOutput("forestPlot", width = "100%")
                  )
                )
              )
     ),
-    tabPanel("About")
+    tabPanel("About",
+             includeMarkdown(here::here("About.md"))
+    )
   )
 )
 
@@ -77,22 +82,22 @@ server <- function(input, output, session) {
     withProgress(value = 0, message =  "Calculating", {
       nE <- input$nE # landmark event number
       tempdat <- inputData()
-      dat <- cbind(tempdat[[1]], tempdat[[2]]*tempdat[[3]])
+      dat <- cbind(tempdat[[1]], tempdat[[2]] * tempdat[[3]])
       lambda <- 0.0003255076
       
       #Priors
       # Weibull prior, mean and varaince for lambda and k
-      wP< - c(lambda, 50, 1, 50)
+      wP <- c(lambda, 50, 1, 50)
       
       # Gompertz prior, mean and variance for eta and b
-      b <- lambda*log(log(2)+1)/log(2)
+      b <- lambda * log(log(2) + 1) / log(2)
       gP <- c(1, 50, b, 50)
       
       # Lon-logistic prior, mean and variance for alpha and beta
-      llP <- c(1/lambda, 50, 1, 50)
+      llP <- c(1 / lambda, 50, 1, 50)
       
       # Log-normal prior, mean and varaince for mu and sigma
-      mu <- -1*log(lambda)-log(2)/2
+      mu <- -1 * log(lambda) - log(2) / 2
       lnP <- c(mu, 50, sqrt(log(2)), 50)
       
       cTime <- max(dat)
@@ -100,30 +105,37 @@ server <- function(input, output, session) {
       incProgress(amount= .1, message = "Initialized values")
       
       #Frequentist Predictions
-      freqRes <- getFreqInts(dat,nE,MM=200)
+      freqRes <- getFreqInts(dat, nE, MM=200)
       
       incProgress(amount= .65, message = "Frequentist Predictions")
       
       #Bayes predictions
-      BayesRes <- getBayesInt(dat,nE,wP,lnP,gP,llP,MM=800)
+      BayesRes <- getBayesInt(dat, nE, wP, lnP, gP, llP, MM = 800)
       mean <- c(freqRes[[1]], BayesRes[[1]])
       lower <- c(freqRes[[2]][,1], BayesRes[[2]][,1])
       upper <- c(freqRes[[2]][,2], BayesRes[[2]][,2])
-      methodText <- cbind(c("Freq-Weibull", "Freq-LogNormal", "Freq-Gompertz", "Freq-LogLogistic",
+      methodText <- c("Freq-Weibull", "Freq-LogNormal", "Freq-Gompertz", "Freq-LogLogistic",
                             "Freq-PredSyn(Avg)", "Freq-PredSyn(MSPE)", "Freq-PredSyn(Vote)",
                             "Bayes-Weibull", "Bayes-LogNormal", "Bayes-Gompertz", "Bayes-LogLogistic",
-                            "Bayes-PredSyn(Avg)", "Bayes-PredSyn(MSPE)", "Bayes-PredSyn(Vote)"), rep(" ", 14))
+                            "Bayes-PredSyn(Avg)", "Bayes-PredSyn(MSPE)", "Bayes-PredSyn(Vote)")
       
-      xmin <- floor(min(lower)/50)*50
-      xmax <- ceil(max(upper)/50)*50
+      xmin <- floor(min(lower) / 50) * 50
+      xmax <- ceil(max(upper) / 50) * 50
       
-      incProgress(amount= .95, message = "Bayes Predictions")
+      incProgress(amount = .95, message = "Bayes Predictions")
       
+      pplotdata <- data.frame(method = methodText,
+                              mean = as.Date(mean, origin = input$study_date) , 
+                              lower = as.Date(lower, origin = input$study_date), 
+                              upper = as.Date(upper, origin = input$study_date))
       
-      forestplot(methodText, mean, lower, upper, clip = c(xmin, xmax), zero=xmin,
-                 xlab=c("Days since first pt on-study"), xticks=seq(xmin, xmax, by=100), boxsize=0.3)
-      
-      
+      p <- ggplot(plotdata, aes(x = method, y = mean, ymin = lower, ymax = upper)) +
+        geom_pointrange() +
+        geom_hline(yintercept = mean(plotdata$mean), linetype = 2) +
+        coord_flip() + 
+        scale_y_date(labels = date_format("%d/%m/%Y")) +
+        labs(y = "Predicted milestone date", x = "") 
+      p
     })
     
   })
