@@ -1,12 +1,12 @@
-Overview
---------
+#### Overview
 
 This App is used to predict a milestone event date for Clinical Trial
 recruitment. The methods used in this App can be found at
 [link](www.rstudio.com)
 
-References
-----------
+
+
+#### References
 
 [1](www.rstudio.com) Last, First M., and First M. Last. "Article Title."
 Journal Title Series Volume. Issue (Year Published): Page(s). Print.
@@ -14,8 +14,9 @@ Journal Title Series Volume. Issue (Year Published): Page(s). Print.
 [2](www.rstudio.com) Last, First M., and First M. Last. "Article Title."
 Journal Title Series Volume. Issue (Year Published): Page(s). Print.
 
-Data
-----
+
+
+#### Data
 
 -   The Milestone App supports .csv, .tsv, .txt, .xlsx, .xls, .sas7bdat
     files.
@@ -31,13 +32,13 @@ Data
     # A tibble: 10 x 3
        onstudy event_time event_indicator
          <int>      <int>           <int>
-     1      82         86               1
-     2      32          0               0
-     3      63          0               0
-     4     166          0               0
-     5      56          0               0
-     6     143          0               0
-     7     163          0               0
-     8     303        308               1
-     9     321          0               0
-    10     263        268               1
+     1     262        267               1
+     2     301        306               1
+     3     257        262               1
+     4      38         41               1
+     5      10          0               0
+     6     344          0               0
+     7     332        337               1
+     8     151        156               1
+     9     242        247               1
+    10      80          0               0

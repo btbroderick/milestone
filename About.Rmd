@@ -8,24 +8,32 @@ output: md_document
 library(tidyverse)
 ```
 
-## Overview 
+#### Overview 
 
-This App is used to predict a milestone event date for Clinical Trial recruitment.  The methods used in this App can be found at [link](www.rstudio.com) 
 
-## References 
+This App is used to predict a milestone event date for Clinical Trial recruitment.  The methods used in this App can be found at [link](www.rstudio.com)   
 
-[1](www.rstudio.com) Last, First M., and First M. Last. "Article Title." Journal Title Series Volume. Issue (Year Published): Page(s). Print.
 
-[2](www.rstudio.com) Last, First M., and First M. Last. "Article Title." Journal Title Series Volume. Issue (Year Published): Page(s). Print.
+#### References  
 
-## Data 
+
+[1](www.rstudio.com)  Last, First M., and First M. Last. "Article Title." Journal Title Series Volume. Issue (Year Published): Page(s). Print.
+
+[2](www.rstudio.com)  Last, First M., and First M. Last. "Article Title." Journal Title Series Volume. Issue (Year Published): Page(s). Print.  
+
+
+
+#### Data  
+
+
+
 * The Milestone App supports .csv, .tsv, .txt, .xlsx, .xls, .sas7bdat files. 
 * Any uploaded data should contain 3 columns; 
     (1) Days from the opening of the Clinical Trial a patient was enrolled 
     (2) Days from opening of Clinical Trial patient had event (0 if no event)
     (3) An event indicator (0 or 1).
 
-```{r, echo=FALSE, comment="", message=FALSE}
+```{r, echo=FALSE, comment="", message=FALSE, results='markup'}
 readr::read_csv(here::here("sample.csv")) %>% 
   mutate(sort = runif(nrow(.), 0, 1)) %>% 
   arrange(sort) %>% 
