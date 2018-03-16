@@ -83,7 +83,6 @@ library(rmeta)
 xmin<-floor(min(lower)/50)*50
 xmax<-ceil(max(upper)/50)*50
 
-forestplot(methodText, mean, lower, upper, clip = c(xmin, xmax), zero=xmin,
+x <- forestplot(methodText, mean, lower, upper, clip = c(xmin, xmax), zero=xmin,
            xlab=c("Days since first pt on-study"), xticks=seq(xmin, xmax, by=100), boxsize=0.3)
-
-
+x
