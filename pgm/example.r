@@ -85,8 +85,11 @@ library(rmeta)
 xmin<-floor(min(lower)/50)*50
 xmax<-ceil(max(upper)/50)*50
 
-forestplot(methodText, mean, lower, upper, clip = c(xmin, xmax), zero=xmin,
+x <- forestplot(methodText, mean, lower, upper, clip = c(xmin, xmax), zero=xmin,
            xlab=c("Days since first pt on-study"), xticks=seq(xmin, xmax, by=100), boxsize=0.3)
+<<<<<<< HEAD
+x
+=======
 
 
 
@@ -108,3 +111,4 @@ p <- ggplot(plotdata, aes(x = method, y = mean, ymin = lower, ymax = upper)) +
 
 print(p)
   ggplotly(p)
+>>>>>>> f690fa5a04d9cd2f224d32a8faa97507168eebbf
