@@ -6,6 +6,8 @@ library(quadprog)
 library(Hmisc)
 library(msm) 
 library(VGAM)
+library(ggplot2)
+library(scales)
 source(here::here("pgm","utilsBayes1.r"))
 source(here::here("pgm","utilsFreq.r"))
 source(here::here("pgm","utilsWts.r"))
@@ -109,3 +111,4 @@ p <- ggplot(plotdata, aes(x = method, y = mean, ymin = lower, ymax = upper)) +
 
 print(p)
   ggplotly(p)
+>>>>>>> f690fa5a04d9cd2f224d32a8faa97507168eebbf
