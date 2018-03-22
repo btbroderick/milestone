@@ -272,10 +272,10 @@ gompTime<-function(dat,params, nEvents,currTime,jT){
   indCens<-which(dat[,2]==0);
   chkVal<- currTime-dat[indCens,1]
   t<-length(indCens)
-  P<-pgompertz(chkVal, shape=b, rate = (eta*b))
-  dat[indCens,2]<-dat[indCens,1] + qgompertz(I(P+(1-P)*runif(t)), shape=b, rate = (eta*b))
+  P<- flexsurv::pgompertz(chkVal, shape=b, rate = (eta*b))
+  dat[indCens,2]<-dat[indCens,1] + flexsurv::qgompertz(I(P+(1-P)*runif(t)), shape=b, rate = (eta*b))
   if(min(jT)>=0){
-    dat<-rbind(dat, cbind(jT,(jT+ rgompertz(length(jT), shape=b, rate = (eta*b))  )))
+    dat<-rbind(dat, cbind(jT,(jT+ flexsurv::rgompertz(length(jT), shape=b, rate = (eta*b))  )))
   }
   return(sort(dat[,2])[nEvents])
 }
