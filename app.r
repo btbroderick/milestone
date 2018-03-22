@@ -24,12 +24,12 @@ source(here::here("pgm", "helper.R"))
 ###########################################
 
 ui <- fluidPage(
-  theme = shinytheme("united"),
+  theme = "mayo_theme.css",
   navbarPage(
-    title = "Milestone",
+    title = "Milestone prediction",
     tabPanel("Main",
              sidebarPanel(
-               numericInput("nE", label = "Landmark Event Number", value = 100, width = 300),
+               numericInput("nE", label = "Landmark Event Number", value = 1000, width = 300),
                dateInput("study_date",label = "Study start date", value = "2018-01-01", width = 300,format = "yyyy-dd-mm"),
                tags$h6("Date format: mm-dd-yyyy"),
                HTML("<br/>"),
@@ -124,7 +124,7 @@ server <- function(input, output, session) {
       
       incProgress(amount = .95, message = "Bayes Predictions")
       
-      pplotdata <- data.frame(method = methodText,
+      plotdata <- data.frame(method = methodText,
                               mean = as.Date(mean, origin = input$study_date) , 
                               lower = as.Date(lower, origin = input$study_date), 
                               upper = as.Date(upper, origin = input$study_date))
@@ -133,7 +133,7 @@ server <- function(input, output, session) {
         geom_pointrange() +
         geom_hline(yintercept = mean(plotdata$mean), linetype = 2) +
         coord_flip() + 
-        scale_y_date(labels = date_format("%d/%m/%Y")) +
+        scale_y_date(labels = scales::date_format("%d/%m/%Y")) +
         labs(y = "Predicted milestone date", x = "") 
       p
     })
