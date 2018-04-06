@@ -35,7 +35,7 @@ dat <- cbind(tempdat[,1], tempdat[,2]*tempdat[,3])
 
 ### STUDY SPECIFIC, ASSUME EXPONENTIAL DISTRIBUTION THE RATE PARAMETER (LAMBDA) THE UNIT IS IN DAYS
 ### THIS IS FROM THE HISTORICAL DATA WHICH USED FOR THE CONTROL ARM
-lambda <- 0.0003255076
+lambda <- 0.0003255076  ## THIS NEEDS TO BE A INPUT PARAM
 
 #Priors
 # Weibull prior, mean and varaince for lambda and k
@@ -85,23 +85,14 @@ library(rmeta)
 xmin<-floor(min(lower)/50)*50
 xmax<-ceil(max(upper)/50)*50
 
-x <- forestplot(methodText, mean, lower, upper, clip = c(xmin, xmax), zero=xmin,
+ forestplot(methodText, mean, lower, upper, clip = c(xmin, xmax), zero=xmin,
            xlab=c("Days since first pt on-study"), xticks=seq(xmin, xmax, by=100), boxsize=0.3)
-<<<<<<< HEAD
-x
-=======
 
-
-
-theme_set(theme_classic())
-output$plot <- renderPlotly({
-  plot_ly(mtcars, x = ~mpg, y = ~wt)
-})
 
 plotdata <- data.frame(method = methodText,
-                       mean = as.Date(mean, origin = "2018-03-13") , 
-                       lower = as.Date(lower, origin = "2018-03-13"), 
-                       upper = as.Date(upper, origin = "2018-03-13"))
+                       mean = as.Date(mean, origin = "2018-01-01") , 
+                       lower = as.Date(lower, origin = "2018-01-01"), 
+                       upper = as.Date(upper, origin = "2018-01-01"))
 p <- ggplot(plotdata, aes(x = method, y = mean, ymin = lower, ymax = upper)) +
   geom_pointrange() +
   geom_hline(yintercept = mean(plotdata$mean), linetype = 2) +
@@ -111,4 +102,4 @@ p <- ggplot(plotdata, aes(x = method, y = mean, ymin = lower, ymax = upper)) +
 
 print(p)
   ggplotly(p)
->>>>>>> f690fa5a04d9cd2f224d32a8faa97507168eebbf
+
