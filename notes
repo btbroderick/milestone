@@ -1,0 +1,17 @@
+Notes from 3/22 meeting:
+
+Send Screenshots of app.
+
+Simulation 
+
+Need to include the following as Input Parameters:
+  - lambda, Wp, b, gp, llp, mu, nlp, and MM
+  - Most derivied from lambda
+  
+About Section:
+  - Need to include descriptions about the default study specific parameters
+  
+Summary Report:
+  - Can we output a pdf report?
+  
+  
