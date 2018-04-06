@@ -1,11 +1,11 @@
 ###########################################
 ### Setup
 ###########################################
+library(tidyverse)
+library(markdown)
 library(shiny)
 library(shinythemes)
 library(DT)
-library(markdown)
-library(tidyverse)
 library(flexsurv)
 library(quadprog)
 library(Hmisc)
