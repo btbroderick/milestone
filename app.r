@@ -44,7 +44,8 @@ ui <- fluidPage(
                  ),
                  tabPanel("Calculate Milestone",
                           actionButton("calculate", label = "Run Milestone Prediction"),
-                          plotOutput("forestPlot", width = "100%")
+                          plotOutput("forestPlot", width = "100%"),
+                          downloadButton("report", "Generate report")
                  )
                )
              )
@@ -78,7 +79,7 @@ server <- function(input, output, session) {
     }
   })
   
-  forestPlot <- eventReactive(input$calculate,{
+  predictions <- eventReactive(input$calculate,{
     withProgress(value = 0, message =  "Calculating", {
       nE <- input$nE # landmark event number
       tempdat <- inputData()
@@ -129,16 +130,34 @@ server <- function(input, output, session) {
                               lower = as.Date(lower, origin = input$study_date), 
                               upper = as.Date(upper, origin = input$study_date))
       
-      p <- ggplot(plotdata, aes(x = method, y = mean, ymin = lower, ymax = upper)) +
-        geom_pointrange() +
-        geom_hline(yintercept = mean(plotdata$mean), linetype = 2) +
-        coord_flip() + 
-        scale_y_date(labels = scales::date_format("%d/%m/%Y")) +
-        labs(y = "Predicted milestone date", x = "") 
-      p
+      plotdata
+      
     })
-    
   })
+  
+  
+  output$report <- downloadHandler(
+    filename = "report.html",
+    content = function(file) {
+      # Copy the report file to a temporary directory before processing it, in
+      # case we don't have write permissions to the current working dir (which
+      # can happen when deployed).
+      tempReport <- file.path(tempdir(), "report.Rmd")
+      file.copy("report.Rmd", tempReport, overwrite = TRUE)
+      
+      # Set up parameters to pass to Rmd document
+      params <- list(data = predictions())
+      
+      # Knit the document, passing in the `params` list, and eval it in a
+      # child of the global environment (this isolates the code in the document
+      # from the code in this app).
+      rmarkdown::render(tempReport, output_file = file,
+                        params = params,
+                        envir = new.env(parent = globalenv())
+      )
+    }
+  )
+  
   
   output$data_checks <- renderText({
     data_check_text()
@@ -149,7 +168,12 @@ server <- function(input, output, session) {
   }, rownames= FALSE)
   
   output$forestPlot <- renderPlot({
-    forestPlot()
+    p <- ggplot(predictions(), aes(x = method, y = mean, ymin = lower, ymax = upper)) +
+      geom_pointrange() +
+      coord_flip() + 
+      scale_y_date(labels = scales::date_format("%d/%m/%Y")) +
+      labs(y = "Predicted milestone date", x = "") 
+    p
   })
 }
 

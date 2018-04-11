@@ -1,0 +1,96 @@
+---
+title: "Dynamic report"
+output: html_document
+params:
+  data: NA
+---
+
+```{r setup, include=FALSE, message = FALSE}
+library(shiny)
+library(shinythemes)
+library(tidyverse)
+library(flexsurv)
+library(quadprog)
+library(Hmisc)
+library(msm) 
+library(VGAM)
+library(ggplot2)
+library(scales)
+library(knitr)
+library(kableExtra)
+
+data <- params$data
+
+```
+
+
+# -- Report Template --
+```{r, echo=FALSE}
+table <- tribble(
+  ~colA                            , ~colB,
+  "Study:"                         , "",
+  "Date of first patient enrolled:", "Date prediction was carried out:",
+  "Number fo events:"              , "Number of event predicted (milestone):"
+) %>%
+  setNames(c("",""))
+
+kable(table, "html") %>%
+  kable_styling(full_width = T) %>%
+  column_spec(1, border_left = FALSE, border_right = FALSE, underline = FALSE) %>%
+  column_spec(2, border_left = FALSE, border_right = FALSE, underline = FALSE) %>%
+  row_spec(1, underline = FALSE) %>%
+  row_spec(2, underline = FALSE)
+```
+
+## Predicted mileston time
+```{r, echo=FALSE}
+p <- ggplot(data, aes(x = method, y = mean, ymin = lower, ymax = upper)) +
+  geom_pointrange() +
+  coord_flip() +
+  scale_y_date(labels = date_format("%d/%m/%Y")) +
+  labs(y = "Days since first patient enrolled", x = "")
+p
+```
+
+```{r, echo = FALSE}
+all <- data %>%
+  mutate(method = case_when(
+    method == "Bayes-Gompertz" ~ "Gompertz",
+    method == "Bayes-LogLogistic" ~ "Log-Logistic",
+    method == "Bayes-LogNormal" ~ "Log-Normal",
+    method == "Bayes-PredSyn(Avg)" ~ "Predicitive Synthesis (Average)",
+    method == "Bayes-PredSyn(MSPE)" ~ "Predicitive Synthesis (MSPE)",
+    method == "Bayes-PredSyn(Vote)" ~ "Predicitive Synthesis (Vote)",
+    method == "Bayes-Weibull" ~ "Weibull",
+    method == "Freq-Gompertz" ~ "Gompertz",
+    method == "Freq-LogLogistic" ~ "Log-Logistic",
+    method == "Freq-LogNormal" ~ "Log-Normal",
+    method == "Freq-PredSyn(Avg)" ~ "Predicitive Synthesis (Average)",
+    method == "Freq-PredSyn(MSPE)" ~ "Predicitive Synthesis (MSPE)",
+    method == "Freq-PredSyn(Vote)" ~ "Predicitive Synthesis (Vote)",
+    method == "Freq-Weibull" ~ "Weibull")) %>%
+  select(method, lower, mean, upper) %>%
+  setNames(c("Method", "Lower bound", "Prediction", "Upper bound"))
+
+
+freq <- filter(all, row_number() <=7)
+bayes <- filter(all, row_number() > 7)
+  
+```
+
+## Frequentist method
+```{r, echo=FALSE}
+
+kable(freq, "html") %>%
+  kable_styling(bootstrap_options = c("striped", "hover"))
+
+```
+
+## Bayesian method
+
+```{r, echo=FALSE}
+
+kable(bayes, "html") %>%
+  kable_styling(bootstrap_options = c("striped", "hover"))
+
+```
