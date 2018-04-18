@@ -49,7 +49,7 @@ ui <- fluidPage(
                  ),
                  conditionalPanel(
                    condition = "input.calculation == 'option3'",
-                   numericInput("lamda", label = "Lambda", value = 0.0003255076)
+                   numericInput("lambda", label = "Lambda", value = 0.0003255076)
                  )
                
              ),
@@ -86,10 +86,9 @@ server <- function(input, output, session) {
       0.0003255076
     } else if (input$calculation == 'option2'){
       0.0003255076
-    } else 0.0003255076
+    } else input$lambda
   })
   
-
   inputData <- eventReactive(input$inputfile, {
     read <- input$inputfile
     if (is.null(read)){
@@ -134,11 +133,13 @@ server <- function(input, output, session) {
       incProgress(amount= .1, message = "Initialized values")
       
       #Frequentist Predictions
+      set.seed(7)
       freqRes <- getFreqInts(dat, nE, MM=200)
       
       incProgress(amount= .65, message = "Frequentist Predictions")
       
       #Bayes predictions
+      set.seed(7)
       BayesRes <- getBayesInt(dat, nE, wP, lnP, gP, llP, MM = 800)
       mean <- c(freqRes[[1]], BayesRes[[1]])
       lower <- c(freqRes[[2]][,1], BayesRes[[2]][,1])
@@ -154,10 +155,10 @@ server <- function(input, output, session) {
       incProgress(amount = .95, message = "Bayes Predictions")
       
       plotdata <- data.frame(method = methodText,
-                              mean = as.Date(mean, origin = input$study_date) , 
-                              lower = as.Date(lower, origin = input$study_date), 
+                              mean = as.Date(mean, origin = input$study_date) ,
+                              lower = as.Date(lower, origin = input$study_date),
                               upper = as.Date(upper, origin = input$study_date))
-      
+
       plotdata
       
     })
@@ -185,7 +186,6 @@ server <- function(input, output, session) {
       )
     }
   )
-  
   
   output$data_checks <- renderText({
     data_check_text()
