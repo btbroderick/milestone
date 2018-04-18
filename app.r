@@ -29,8 +29,8 @@ ui <- fluidPage(
     title = "Milestone prediction",
     tabPanel("Main",
              sidebarPanel(
-               numericInput("nE", label = "Landmark Event Number", value = 1000, width = 300),
-               dateInput("study_date",label = "Study start date", value = "2018-01-01", width = 300,format = "yyyy-mm-dd"),
+               numericInput("nE", label = "Mileston (number of events)", value = 1000, width = 300),
+               dateInput("study_date",label = "First patient enrollment date", value = "2018-01-01", width = 300,format = "yyyy-mm-dd"),
                tags$h6("Date format: yyyy-mm-dd"),
                HTML("<br/>"),
                fileInput("inputfile", NULL, buttonLabel = "Upload", multiple = FALSE, width = 300),
