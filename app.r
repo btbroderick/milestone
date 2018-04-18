@@ -34,7 +34,24 @@ ui <- fluidPage(
                tags$h6("Date format: yyyy-mm-dd"),
                HTML("<br/>"),
                fileInput("inputfile", NULL, buttonLabel = "Upload", multiple = FALSE, width = 300),
-               tags$h6("*File upload format can be found in the 'About' tab")
+               tags$h6("*File upload format can be found in the 'About' tab"),
+               radioButtons(inputId="calculation", label="How are you calculating lambda?", 
+                            choices=c("option1","option2","option3"), selected = "option3"),
+               conditionalPanel(
+                   condition = "input.calculation == 'option1'",
+                   numericInput("method1param1", label = "Parameter 1", value = 0),
+                   numericInput("method2param2", label = "Parameter 2", value = 0)
+                 ),
+                 conditionalPanel(
+                   condition = "input.calculation == 'option2'",
+                   numericInput("method2param1", label = "Parameter 1", value = 0),
+                   numericInput("method2param2", label = "Parameter 2", value = 0)
+                 ),
+                 conditionalPanel(
+                   condition = "input.calculation == 'option3'",
+                   numericInput("lamda", label = "Lambda", value = 0.0003255076)
+                 )
+               
              ),
              mainPanel(
                tabsetPanel(
@@ -64,6 +81,15 @@ ui <- fluidPage(
 
 server <- function(input, output, session) {
   
+  lambda <- reactive({
+    if (input$calculation == 'option1'){
+      0.0003255076
+    } else if (input$calculation == 'option2'){
+      0.0003255076
+    } else 0.0003255076
+  })
+  
+
   inputData <- eventReactive(input$inputfile, {
     read <- input$inputfile
     if (is.null(read)){
@@ -86,21 +112,21 @@ server <- function(input, output, session) {
       nE <- input$nE # landmark event number
       tempdat <- inputData()
       dat <- cbind(tempdat[[1]], tempdat[[2]] * tempdat[[3]])
-      lambda <- 0.0003255076
+      #lambda <- 0.0003255076
       
       #Priors
       # Weibull prior, mean and varaince for lambda and k
-      wP <- c(lambda, 50, 1, 50)
+      wP <- c(lambda(), 50, 1, 50)
       
       # Gompertz prior, mean and variance for eta and b
-      b <- lambda * log(log(2) + 1) / log(2)
+      b <- lambda() * log(log(2) + 1) / log(2)
       gP <- c(1, 50, b, 50)
       
       # Lon-logistic prior, mean and variance for alpha and beta
-      llP <- c(1 / lambda, 50, 1, 50)
+      llP <- c(1 / lambda(), 50, 1, 50)
       
       # Log-normal prior, mean and varaince for mu and sigma
-      mu <- -1 * log(lambda) - log(2) / 2
+      mu <- -1 * log(lambda()) - log(2) / 2
       lnP <- c(mu, 50, sqrt(log(2)), 50)
       
       cTime <- max(dat)
