@@ -6,7 +6,7 @@ library(quadprog)
 library(Hmisc)
 library(msm) 
 library(VGAM)
-library(ggplot2)
+#library(ggplot2)
 library(scales)
 source(here::here("pgm","utilsBayes1.r"))
 source(here::here("pgm","utilsFreq.r"))
@@ -92,13 +92,28 @@ xmax<-ceil(max(upper)/50)*50
 plotdata <- data.frame(method = methodText,
                        mean = as.Date(mean, origin = "2018-01-01") , 
                        lower = as.Date(lower, origin = "2018-01-01"), 
-                       upper = as.Date(upper, origin = "2018-01-01"))
-p <- ggplot(plotdata, aes(x = method, y = mean, ymin = lower, ymax = upper)) +
-  geom_pointrange() +
-  geom_hline(yintercept = mean(plotdata$mean), linetype = 2) +
-  coord_flip() + 
-  scale_y_date(labels = date_format("%d/%m/%Y")) +
-  labs(y = "Days since first patient enrolled", x = "") 
+                       upper = as.Date(upper, origin = "2018-01-01")) %>% 
+  mutate(type = case_when(
+    str_detect(method, pattern = "Freq") ~ "Frequentist",
+    str_detect(method, pattern = "Bayes") ~ "Bayesian"
+  ))
+
+library("devtools")
+devtools::install_github("hadley/ggplot2")
+library(ggplot2)
+
+library(ggstance)
+
+p <- ggplot(plotdata, aes(x = mean, y = method, xmin = lower, xmax = upper)) +
+  geom_pointrangeh() +
+  facet_grid(type ~ ., scale = "free", switch="both") + 
+  scale_x_date(labels = date_format("%d/%m/%Y")) +
+  labs(y = "Days since first patient enrolled", x = "")
+  # scale_y_date(labels = date_format("%d/%m/%Y")) +
+  
+
+p
+
 
 print(p)
   ggplotly(p)

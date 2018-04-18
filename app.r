@@ -13,6 +13,8 @@ library(msm)
 library(VGAM)
 library(rmeta)
 library(ggplot2)
+library(scales)
+library(ggstance)
 library(plotly)
 theme_set(theme_classic())
 source(here::here("pgm","utilsBayes1.r"))
@@ -157,7 +159,10 @@ server <- function(input, output, session) {
       plotdata <- data.frame(method = methodText,
                               mean = as.Date(mean, origin = input$study_date) ,
                               lower = as.Date(lower, origin = input$study_date),
-                              upper = as.Date(upper, origin = input$study_date))
+                              upper = as.Date(upper, origin = input$study_date)) %>% 
+        mutate(type = case_when(
+          str_detect(method, pattern = "Freq") ~ "Frequentist",
+          str_detect(method, pattern = "Bayes") ~ "Bayesian"))
 
       plotdata
       
@@ -196,11 +201,11 @@ server <- function(input, output, session) {
   }, rownames= FALSE)
   
   output$forestPlot <- renderPlot({
-    p <- ggplot(predictions(), aes(x = method, y = mean, ymin = lower, ymax = upper)) +
-      geom_pointrange() +
-      coord_flip() + 
-      scale_y_date(labels = scales::date_format("%Y-%m-%d")) +
-      labs(y = "Predicted milestone date", x = "") 
+    p <- ggplot(predictions(), aes(x = mean, y = method, xmin = lower, xmax = upper)) +
+      geom_pointrangeh() +
+      facet_grid(type ~ ., scale = "free", switch="both") + 
+      scale_x_date(labels = date_format("%d/%m/%Y")) +
+      labs(y = "Days since first patient enrolled", x = "")
     p
   })
 }
