@@ -30,8 +30,8 @@ ui <- fluidPage(
     tabPanel("Main",
              sidebarPanel(
                numericInput("nE", label = "Landmark Event Number", value = 1000, width = 300),
-               dateInput("study_date",label = "Study start date", value = "2018-01-01", width = 300,format = "yyyy-dd-mm"),
-               tags$h6("Date format: mm-dd-yyyy"),
+               dateInput("study_date",label = "Study start date", value = "2018-01-01", width = 300,format = "yyyy-mm-dd"),
+               tags$h6("Date format: yyyy-mm-dd"),
                HTML("<br/>"),
                fileInput("inputfile", NULL, buttonLabel = "Upload", multiple = FALSE, width = 300),
                tags$h6("*File upload format can be found in the 'About' tab")
@@ -52,7 +52,9 @@ ui <- fluidPage(
     ),
     tabPanel("About",
              includeMarkdown(here::here("About.md"))
-    )
+    ),
+    tabPanel("Bayesian Prior Tab",
+             includeMarkdown(here::here("Bayesian.md")))
   )
 )
 
@@ -171,7 +173,7 @@ server <- function(input, output, session) {
     p <- ggplot(predictions(), aes(x = method, y = mean, ymin = lower, ymax = upper)) +
       geom_pointrange() +
       coord_flip() + 
-      scale_y_date(labels = scales::date_format("%d/%m/%Y")) +
+      scale_y_date(labels = scales::date_format("%Y-%m-%d")) +
       labs(y = "Predicted milestone date", x = "") 
     p
   })
