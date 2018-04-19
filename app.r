@@ -14,7 +14,7 @@ library(VGAM)
 library(rmeta)
 library(ggplot2)
 library(scales)
-library(ggstance)
+library(ggstance, lib.loc = here::here("rpkgs"))
 library(plotly)
 theme_set(theme_classic())
 source(here::here("pgm","utilsBayes1.r"))
@@ -31,6 +31,7 @@ ui <- fluidPage(
     title = "Milestone prediction",
     tabPanel("Main",
              sidebarPanel(
+               textInput("study_title", label = "Study Name", value = "Enter Study Name", width = 300),
                numericInput("nE", label = "Mileston (number of events)", value = 1000, width = 300),
                dateInput("study_date",label = "First patient enrollment date", value = "2018-01-01", width = 300,format = "yyyy-mm-dd"),
                tags$h6("Date format: yyyy-mm-dd"),
@@ -162,8 +163,11 @@ server <- function(input, output, session) {
                               upper = as.Date(upper, origin = input$study_date)) %>% 
         mutate(type = case_when(
           str_detect(method, pattern = "Freq") ~ "Frequentist",
-          str_detect(method, pattern = "Bayes") ~ "Bayesian"))
-
+          str_detect(method, pattern = "Bayes") ~ "Bayesian"),
+          label = c("Weibull", "Log-Normal", "Gompertz", "Log-Logistic","Predictive Synthesis (Average)",
+                    "Predictive Synthesis (MSPE)", "Predictive Synthesis (Vote)","Weibull", "Log-Normal", 
+                    "Gompertz", "Log-Logistic","Predictive Synthesis (Average)",
+                    "Predictive Synthesis (MSPE)", "Predictive Synthesis (Vote)"))
       plotdata
       
     })
@@ -180,7 +184,11 @@ server <- function(input, output, session) {
       file.copy("report.Rmd", tempReport, overwrite = TRUE)
       
       # Set up parameters to pass to Rmd document
-      params <- list(data = predictions())
+      params <- list(data = predictions(), 
+                     study = input$study_title,
+                     first_date = input$study_date,
+                     number_events = sum(inputData()[[3]]),
+                     milestone = input$nE)
       
       # Knit the document, passing in the `params` list, and eval it in a
       # child of the global environment (this isolates the code in the document
@@ -201,10 +209,10 @@ server <- function(input, output, session) {
   }, rownames= FALSE)
   
   output$forestPlot <- renderPlot({
-    p <- ggplot(predictions(), aes(x = mean, y = method, xmin = lower, xmax = upper)) +
+    p <- ggplot(predictions(), aes(x = mean, y = label, xmin = lower, xmax = upper)) +
       geom_pointrangeh() +
       facet_grid(type ~ ., scale = "free", switch="both") + 
-      scale_x_date(labels = date_format("%d/%m/%Y")) +
+      scale_x_date(labels = date_format("%Y-%d-%m")) +
       labs(y = "Days since first patient enrolled", x = "")
     p
   })
