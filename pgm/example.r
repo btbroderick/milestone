@@ -95,8 +95,11 @@ plotdata <- data.frame(method = methodText,
                        upper = as.Date(upper, origin = "2018-01-01")) %>% 
   mutate(type = case_when(
     str_detect(method, pattern = "Freq") ~ "Frequentist",
-    str_detect(method, pattern = "Bayes") ~ "Bayesian"
-  ))
+    str_detect(method, pattern = "Bayes") ~ "Bayesian"),
+    label = c("Weibull", "Log-Normal", "Gompertz", "Log-Logistic","Predictive Synthesis (Average)",
+              "Predictive Synthesis (MSPE)", "Predictive Synthesis (Vote)","Weibull", "Log-Normal", 
+              "Gompertz", "Log-Logistic","Predictive Synthesis (Average)",
+              "Predictive Synthesis (MSPE)", "Predictive Synthesis (Vote)"))
 
 library("devtools")
 devtools::install_github("hadley/ggplot2")
