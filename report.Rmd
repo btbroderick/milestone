@@ -1,8 +1,11 @@
 ---
-title: "Dynamic report"
 output: html_document
 params:
   data: NA
+  study: NA
+  first_date: NA
+  number_events: NA 
+  milestone: NA
 ---
 
 ```{r setup, include=FALSE, message = FALSE}
@@ -20,17 +23,20 @@ library(knitr)
 library(kableExtra)
 
 data <- params$data
-
+study <- params$study
+first_date <- params$first_date
+number_events <- params$number_events
+milestone <- params$milestone
+today <- Sys.Date()
 ```
 
 
-# -- Report Template --
 ```{r, echo=FALSE}
 table <- tribble(
   ~colA                            , ~colB,
-  "Study:"                         , "",
-  "Date of first patient enrolled:", "Date prediction was carried out:",
-  "Number fo events:"              , "Number of event predicted (milestone):"
+  paste0("Study: ",study)           , "",
+  paste0("Date of first patient enrolled: ", first_date), paste0("Date prediction was carried out: ", today),
+  paste0("Number fo events: ", number_events)              , paste0("Number of event predicted (milestone):", milestone )
 ) %>%
   setNames(c("",""))
 
@@ -42,14 +48,14 @@ kable(table, "html") %>%
   row_spec(2, underline = FALSE)
 ```
 
-## Predicted mileston time
+## Predicted milestone date
 ```{r, echo=FALSE}
-p <- ggplot(data, aes(x = method, y = mean, ymin = lower, ymax = upper)) +
-  geom_pointrange() +
-  coord_flip() +
-  scale_y_date(labels = date_format("%d/%m/%Y")) +
-  labs(y = "Days since first patient enrolled", x = "")
-p
+p <- ggplot(data, aes(x = mean, y = label, xmin = lower, xmax = upper)) +
+      geom_pointrangeh() +
+      facet_grid(type ~ ., scale = "free", switch="both") + 
+      scale_x_date(labels = date_format("%Y-%d-%m")) +
+      labs(y = "Days since first patient enrolled", x = "")
+    p
 ```
 
 ```{r, echo = FALSE}
