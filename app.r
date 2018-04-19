@@ -71,10 +71,10 @@ ui <- fluidPage(
              )
     ),
     tabPanel("About",
-             includeMarkdown(here::here("About.md"))
+             includeMarkdown(here::here("markdown", "About.md"))
     ),
     tabPanel("Bayesian Prior Tab",
-             includeMarkdown(here::here("Bayesian.md")))
+             includeMarkdown(here::here("markdown", "Bayesian.md")))
   )
 )
 
