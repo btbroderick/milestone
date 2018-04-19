@@ -65,6 +65,8 @@ ui <- fluidPage(
                  tabPanel("Calculate Milestone",
                           actionButton("calculate", label = "Run Milestone Prediction"),
                           plotOutput("forestPlot", width = "100%"),
+                          tableOutput("table1"),
+                          tableOutput("table2"),
                           downloadButton("report", "Generate report")
                  )
                )
@@ -216,6 +218,58 @@ server <- function(input, output, session) {
       labs(y = "Days since first patient enrolled", x = "")
     p
   })
+  
+  output$table1 <- function(){
+    all <- predictions() %>%
+      mutate(label2 = case_when(
+        method == "Bayes-Gompertz" ~ "Gompertz",
+        method == "Bayes-LogLogistic" ~ "Log-Logistic",
+        method == "Bayes-LogNormal" ~ "Log-Normal",
+        method == "Bayes-PredSyn(Avg)" ~ "Predicitive Synthesis (Average)",
+        method == "Bayes-PredSyn(MSPE)" ~ "Predicitive Synthesis (MSPE)",
+        method == "Bayes-PredSyn(Vote)" ~ "Predicitive Synthesis (Vote)",
+        method == "Bayes-Weibull" ~ "Weibull",
+        method == "Freq-Gompertz" ~ "Gompertz",
+        method == "Freq-LogLogistic" ~ "Log-Logistic",
+        method == "Freq-LogNormal" ~ "Log-Normal",
+        method == "Freq-PredSyn(Avg)" ~ "Predicitive Synthesis (Average)",
+        method == "Freq-PredSyn(MSPE)" ~ "Predicitive Synthesis (MSPE)",
+        method == "Freq-PredSyn(Vote)" ~ "Predicitive Synthesis (Vote)",
+        method == "Freq-Weibull" ~ "Weibull")) %>%
+      select(label2, lower, mean, upper) %>%
+      setNames(c("Method", "Lower bound", "Prediction", "Upper bound"))
+    
+    freq <- filter(all, row_number() <=7)
+    kable(freq, "html") %>%
+      kable_styling(bootstrap_options = c("striped", "hover"))
+  }
+  
+  output$table2 <- function(){
+    all <- predictions() %>%
+      mutate(label2 = case_when(
+        method == "Bayes-Gompertz" ~ "Gompertz",
+        method == "Bayes-LogLogistic" ~ "Log-Logistic",
+        method == "Bayes-LogNormal" ~ "Log-Normal",
+        method == "Bayes-PredSyn(Avg)" ~ "Predicitive Synthesis (Average)",
+        method == "Bayes-PredSyn(MSPE)" ~ "Predicitive Synthesis (MSPE)",
+        method == "Bayes-PredSyn(Vote)" ~ "Predicitive Synthesis (Vote)",
+        method == "Bayes-Weibull" ~ "Weibull",
+        method == "Freq-Gompertz" ~ "Gompertz",
+        method == "Freq-LogLogistic" ~ "Log-Logistic",
+        method == "Freq-LogNormal" ~ "Log-Normal",
+        method == "Freq-PredSyn(Avg)" ~ "Predicitive Synthesis (Average)",
+        method == "Freq-PredSyn(MSPE)" ~ "Predicitive Synthesis (MSPE)",
+        method == "Freq-PredSyn(Vote)" ~ "Predicitive Synthesis (Vote)",
+        method == "Freq-Weibull" ~ "Weibull")) %>%
+      select(label2, lower, mean, upper) %>%
+      setNames(c("Method", "Lower bound", "Prediction", "Upper bound"))
+    
+    bayes <- filter(all, row_number() > 7)
+    
+    kable(bayes, "html") %>%
+      kable_styling(bootstrap_options = c("striped", "hover"))
+  }
+  
 }
 
 ##########################################
