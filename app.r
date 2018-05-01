@@ -38,20 +38,21 @@ ui <- fluidPage(
                HTML("<br/>"),
                fileInput("inputfile", NULL, buttonLabel = "Upload", multiple = FALSE, width = 300),
                tags$h6("*File upload format can be found in the 'About' tab"),
-               radioButtons(inputId="calculation", label="How are you calculating lambda?", 
-                            choices=c("option1","option2","option3"), selected = "option3"),
+               radioButtons(inputId="calculation", label="If you wish to use defult priors for baysian estimates please check on of the follow options to provide historic event rate; otherwise see the 'Custom Prior Distributions' tab.", 
+                            choices=c("Cumulative Survial Percentage",
+                                      "Median Survival Time",
+                                      "Hazard Rate"), selected = "Hazard Rate"),
                conditionalPanel(
-                   condition = "input.calculation == 'option1'",
-                   numericInput("method1param1", label = "Parameter 1", value = 0),
-                   numericInput("method2param2", label = "Parameter 2", value = 0)
+                   condition = "input.calculation == 'Cumulative Survial Percentage'",
+                   numericInput("survProp", label = "Survival Percentage (0-100)", value = 0, min = 0, 100),
+                   numericInput("cutoff", label = "Number of Days", value = 0)
                  ),
                  conditionalPanel(
-                   condition = "input.calculation == 'option2'",
-                   numericInput("method2param1", label = "Parameter 1", value = 0),
-                   numericInput("method2param2", label = "Parameter 2", value = 0)
+                   condition = "input.calculation == 'Median Survival Time'",
+                   numericInput("medianTime", label = "Days", value = 0)
                  ),
                  conditionalPanel(
-                   condition = "input.calculation == 'option3'",
+                   condition = "input.calculation == 'Hazard Rate'",
                    numericInput("lambda", label = "Lambda", value = 0.0003255076)
                  )
                
@@ -62,6 +63,14 @@ ui <- fluidPage(
                           dataTableOutput("data_view"),
                           tags$h3(textOutput("data_checks"))
                  ),
+                 tabPanel("Customize Prior Distributions",
+                          fluidRow(tags$h2("Weibullprior"),
+                                  column(2, numericInput(inputId = "meanlambda", label = "Mean of Lambda", value = 0, width = 75)),
+                                  column(2, numericInput(inputId = "varlambda", label = "Varience of Lambda", value = 0,  width = 75)),
+                                  column(2, numericInput(inputId = "meank", label = "Mean of K", value = 0,  width = 75)),
+                                  column(2,numericInput(inputId = "vark", label = "Varience of K", value = 0,  width = 75))
+                                   )
+                          ),
                  tabPanel("Calculate Milestone",
                           actionButton("calculate", label = "Run Milestone Prediction"),
                           plotOutput("forestPlot", width = "100%"),
@@ -87,10 +96,10 @@ ui <- fluidPage(
 server <- function(input, output, session) {
   
   lambda <- reactive({
-    if (input$calculation == 'option1'){
-      0.0003255076
-    } else if (input$calculation == 'option2'){
-      0.0003255076
+    if (input$calculation == 'Cumulative Survial Percentage'){
+      -log(input$survProb)/input$cutoff
+    } else if (input$calculation == 'Median Survival Time'){
+      -log(0.5)/input$medianTime
     } else input$lambda
   })
   
