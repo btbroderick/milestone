@@ -214,7 +214,7 @@ server <- function(input, output, session) {
     p <- ggplot(predictions(), aes(x = mean, y = label, xmin = lower, xmax = upper)) +
       geom_pointrangeh() +
       facet_grid(type ~ ., scale = "free", switch="both") + 
-      scale_x_date(labels = date_format("%Y-%d-%m")) +
+      scale_x_date(labels = date_format("%Y-%m-%d")) +
       labs(y = "Days since first patient enrolled", x = "")
     p
   })
