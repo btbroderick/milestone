@@ -49,16 +49,17 @@ ui <- fluidPage(
                conditionalPanel(
                    condition = "input.calculation == 'Cumulative Survial Percentage'",
                    numericInput("survProp", label = "Survival Percentage (0-100)", value = 0, min = 0, 100),
-                   numericInput("cutoff", label = "Number of Days", value = 0)
+                   numericInput("cutoff", label = "Number of Days", value = 0, width = 300)
                  ),
                  conditionalPanel(
                    condition = "input.calculation == 'Median Survival Time'",
-                   numericInput("medianTime", label = "Days", value = 0)
+                   numericInput("medianTime", label = "Days", value = 0, width = 300)
                  ),
                  conditionalPanel(
                    condition = "input.calculation == 'Hazard Rate'",
-                   numericInput("lambda", label = "Lambda", value = 0.0003255076)
-                 )
+                   numericInput("lambda", label = "Lambda", value = 0.0003255076, width = 300)
+                 ),
+               numericInput("seed", label = "Set Random Seed", value = 7 , width = 300)
                
              ),
              mainPanel(
@@ -170,13 +171,13 @@ server <- function(input, output, session) {
       incProgress(amount= .1, message = "Initialized values")
       
       #Frequentist Predictions
-      set.seed(7)
+      set.seed(input$seed)
       freqRes <- getFreqInts(dat, nE, MM=200)
       
       incProgress(amount= .65, message = "Frequentist Predictions")
       
       #Bayes predictions
-      set.seed(7)
+      set.seed(input$seed)
       BayesRes <- getBayesInt(dat, nE, wP, lnP, gP, llP, MM = 800)
       mean <- c(freqRes[[1]], BayesRes[[1]])
       lower <- c(freqRes[[2]][,1], BayesRes[[2]][,1])
@@ -305,15 +306,41 @@ server <- function(input, output, session) {
   ##### Reset button ########
   observeEvent(input$reset_input, {
     #reset("reset")
-    updatedml <- lambda()
+    ## Weibull
+    updateml <- lambda()
     updatevl <- 10*max(lambda(),1)
-    updateNumericInput(session, "meanlambda", value = updatedml)
+    updateNumericInput(session, "meanlambda", value = updateml)
     updateNumericInput(session, "varlambda", value = updatevl)
-    updateNumericInput(session, "meank", value = updatedml)
-    updateNumericInput(session, "vark", value = updatevl)
+    updateNumericInput(session, "meank", value = 1)
+    updateNumericInput(session, "vark", value = 10)
+    
+    ## Gompertz
+    updatemb <- lambda()*log(log(2)+1)/log(2)
+    updatevb <- 10*max(updatemb,1)
+    updateNumericInput(session, "meaneta", value = 1)
+    updateNumericInput(session, "vareta", value = 10)
+    updateNumericInput(session, "meanb", value = updatemb)
+    updateNumericInput(session, "varb", value = updatevb)
+    
+    ## Log-logistic
+    updatema <- 1/lambda()
+    updateva <- 10*max(updatema,1)
+    updateNumericInput(session, "meanalpha", value = updatema)
+    updateNumericInput(session, "varalpha", value = updateva)
+    updateNumericInput(session, "meanbeta", value = 1)
+    updateNumericInput(session, "varbeta", value = 10)
+    
+    ## Log-logistic
+    updatemu <- -1*log(lambda())-log(2)/2
+    updatevmu <- 10*max(updatemu,1)
+    updatems <- sqrt(log(2))
+    updatevs <- 10
+    updateNumericInput(session, "meanmu", value = updatemu)
+    updateNumericInput(session, "varmu", value = updatevmu)
+    updateNumericInput(session, "meansigma", value = updatems)
+    updateNumericInput(session, "varsigma", value = updatevs)
   })
   
-  ##### Values for Custom Priors #####
   
   
 }
