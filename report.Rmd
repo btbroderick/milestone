@@ -50,10 +50,13 @@ kable(table, "html") %>%
 
 ## Predicted milestone date
 ```{r, echo=FALSE}
-p <- ggplot(data, aes(x = mean, y = label, xmin = lower, xmax = upper)) +
+group.colors <- c(A = "#2ca25f", B = "#636363")
+p <- ggplot(data, aes(x = mean, y = label, xmin = lower, xmax = upper, color = color)) +
       geom_pointrangeh() +
+      theme(legend.position="none") +
+      scale_color_manual(values=group.colors) +
       facet_grid(type ~ ., scale = "free", switch="both") + 
-      scale_x_date(labels = date_format("%Y-%d-%m")) +
+      scale_x_date(labels = date_format("%Y-%m-%d")) +
       labs(y = "Days since first patient enrolled", x = "")
     p
 ```
@@ -74,22 +77,18 @@ all <- data %>%
     method == "Freq-PredSyn(Avg)" ~ "Predicitive Synthesis (Average)",
     method == "Freq-PredSyn(MSPE)" ~ "Predicitive Synthesis (MSPE)",
     method == "Freq-PredSyn(Vote)" ~ "Predicitive Synthesis (Vote)",
-    method == "Freq-Weibull" ~ "Weibull")) %>%
-  select(method, lower, mean, upper) %>%
-  setNames(c("Method", "Lower bound", "Prediction", "Upper bound"))
+    method == "Freq-Weibull" ~ "Weibull"),
+        order = c(4,5,7,6,2,1,3,8,10,14,12,4,2,6)) %>%
+      arrange(order) %>% 
+  select(method, lower, mean, upper, type) %>%
+  setNames(c("Method", "Lower bound", "Prediction", "Upper bound", "type"))
 
 
-freq <- filter(all, row_number() <=7)
-bayes <- filter(all, row_number() > 7)
+freq <- filter(all, type == "Bayesian") %>% 
+      select(-type)
+bayes <- filter(all, type == "Frequentist") %>% 
+      select(-type)
   
-```
-
-## Frequentist method
-```{r, echo=FALSE}
-
-kable(freq, "html") %>%
-  kable_styling(bootstrap_options = c("striped", "hover"))
-
 ```
 
 ## Bayesian method
@@ -97,6 +96,15 @@ kable(freq, "html") %>%
 ```{r, echo=FALSE}
 
 kable(bayes, "html") %>%
+  kable_styling(bootstrap_options = c("striped", "hover"))
+
+```
+
+
+## Frequentist method
+```{r, echo=FALSE}
+
+kable(freq, "html") %>%
   kable_styling(bootstrap_options = c("striped", "hover"))
 
 ```

@@ -1,3 +1,7 @@
+
+library("msm") #needed for truncated normal.
+
+
 #######################################
 #
 # weibTime() - generates random time to achieve a given number of events 
@@ -53,6 +57,8 @@ weibTime<-function(dat,params, nEvents,currTime,joinTime){
 #     of the Weibull. (for a gamma distribution)
 #   M - the number of Monte Carlo iterations
 #   nEvents - number of events needed to complete the study.
+#   totAcc - the total number of subjects to accrue. Must be greater than nE, otherwise the 
+#       program will not terminate.
 # Return - A matrix of size M x 3 
 #   Columns 1 & 2 : lam, k - sequence of parameter values of the MCMC with the starting point 
 #     being the MLE.
@@ -60,7 +66,7 @@ weibTime<-function(dat,params, nEvents,currTime,joinTime){
 #     simulation for each of the parameter values in lam,k
 #######################################
 
-weibPost<-function(dat,currTime=max(dat),priParams,M=1000,nEvents=length(dat[,1]),shouldjT="T"){
+weibPost<-function(dat,currTime=max(dat),priParams,M=1000,nEvents=length(dat[,1]),shouldjT="T",totAcc=2*nEvents){
   Btr<-200
   shpePost<-length(dat[,1])+1
   ind_i<-which(dat[,2]>0)  #ind_i are uncensored values
@@ -81,7 +87,10 @@ weibPost<-function(dat,currTime=max(dat),priParams,M=1000,nEvents=length(dat[,1]
   B_K<-priParams[3]/priParams[4];  A_K<-priParams[3]^2/priParams[4];
   f_theta_c<-dgamma(l_c, A_L, B_L)*dgamma(K_c, A_K, B_K)
   lT<-rgamma(1,shape=shpePost,scale=1/currTime)
-  if(shouldjT){ jT<-currTime+cumsum(rexp(2*nEvents,rate=lT)) }
+  simN=totAcc-dim(dat)[1]
+  simN=max(c(simN,0))
+  if(simN==0){shouldJT=0}
+  if(shouldjT){ jT<-currTime+cumsum(rexp(simN,rate=lT)) }
   else{jT=-1}
   
   rndTime<-weibTime(dat,params=c(l_c,K_c), nEvents,currTime,jT)
@@ -110,7 +119,7 @@ weibPost<-function(dat,currTime=max(dat),priParams,M=1000,nEvents=length(dat[,1]
     lT<-rgamma(1,shape=shpePost,scale=1/currTime)
     mnLambda<-1/lT
     mostWeib<-qweibull(.99, shape=K_c,scale=l_c) 
-    if(shouldjT){    jT<-currTime+cumsum(rexp(2*nEvents,rate=lT))}
+    if(shouldjT){    jT<-currTime+cumsum(rexp(simN,rate=lT))}
     rndTime<-c(rndTime,weibTime(dat,params=c(l_c,K_c), nEvents,currTime,jT) )
     if(i/100==round(i/100)){
       c<-(mean(diff(lam[(i-99):i])==0)/.7)
@@ -177,6 +186,8 @@ logLogTime<-function(dat,params, nEvents,currTime,jT){
 #     of the log-logistic distribution. (for a gamma prior)
 #   M - the number of Monte Carlo iterations
 #   nEvents - number of events needed to complete the study.
+#   totAcc - the total number of subjects to accrue. Must be greater than nE, otherwise the 
+#       program will not terminate.
 # Return - A matrix of size M x 3 
 #   Columns 1 & 2 alpha, b - sequence of parameter values of the MCMC with the 
 #       starting point being the MLE.
@@ -184,7 +195,7 @@ logLogTime<-function(dat,params, nEvents,currTime,jT){
 #     for each of the parameter values in alpha,b
 #######################################
 
-logLogPost<-function(dat,currTime=max(dat),priParams,M=1000,nEvents=length(dat[,1]) ,shouldjT="T"){
+logLogPost<-function(dat,currTime=max(dat),priParams,M=1000,nEvents=length(dat[,1]) ,shouldjT="T",totAcc=2*nEvents){
   ind_i<-which(dat[,2]>0)  #ind_i are uncensored values
   shpePost<-length(dat[,1])+1
   n_i=length(ind_i)
@@ -201,7 +212,10 @@ logLogPost<-function(dat,currTime=max(dat),priParams,M=1000,nEvents=length(dat[,
   
   f_theta_c<-dgamma(b_c, A_b, B_b)*dgamma(a_c, A_a, B_a)
   lT<-rgamma(1,shape=shpePost,scale=1/currTime)
-  if(shouldjT){ jT<-currTime+cumsum(rexp(2*nEvents,rate=lT)) }
+  simN=totAcc-dim(dat)[1]
+  simN=max(c(simN,0))
+  if(simN==0){shouldJT=0}
+  if(shouldjT){ jT<-currTime+cumsum(rexp(simN,rate=lT)) }
   else{jT=-1}
   rndTime<-logLogTime(dat,params=c(a_c,b_c), nEvents,currTime,jT)
   
@@ -229,7 +243,7 @@ logLogPost<-function(dat,currTime=max(dat),priParams,M=1000,nEvents=length(dat[,
     a<-c(a,a_c)
     b<-c(b,b_c) 
     lT<-rgamma(1,shape=shpePost,scale=1/currTime)
-    if(shouldjT){    jT<-currTime+cumsum(rexp(2*nEvents,rate=lT))}
+    if(shouldjT){    jT<-currTime+cumsum(rexp(simN,rate=lT))}
     rndTime<-c(rndTime,logLogTime(dat,params=c(a_c,b_c), nEvents,currTime,jT))
     if(i/100==round(i/100)){
       c<-(mean(diff(b[(i-99):i])==0)/.7)
@@ -272,7 +286,7 @@ gompTime<-function(dat,params, nEvents,currTime,jT){
   indCens<-which(dat[,2]==0);
   chkVal<- currTime-dat[indCens,1]
   t<-length(indCens)
-  P<- flexsurv::pgompertz(chkVal, shape=b, rate = (eta*b))
+  P<-flexsurv::pgompertz(chkVal, shape=b, rate = (eta*b))
   dat[indCens,2]<-dat[indCens,1] + flexsurv::qgompertz(I(P+(1-P)*runif(t)), shape=b, rate = (eta*b))
   if(min(jT)>=0){
     dat<-rbind(dat, cbind(jT,(jT+ flexsurv::rgompertz(length(jT), shape=b, rate = (eta*b))  )))
@@ -296,13 +310,15 @@ gompTime<-function(dat,params, nEvents,currTime,jT){
 #     of the Gompertz distribution. (for a gamma prior)
 #   M - the number of Monte Carlo iterations
 #   nEvents - number of events needed to complete the study.
+#   totAcc - the total number of subjects to accrue. Must be greater than nE, otherwise the 
+#       program will not terminate.
 # Return - A matrix of size M x 3 
 #   Columns 1 & 2: eta,b - sequence of parameter values of the MCMC with the 
 #       starting point being the MLE.
 #   Column 3: rndTime - sequence of random times for milestone completion based on a single simulation 
 #     for each of the parameter values in eta,b
 #######################################
-gompPost<-function(dat,currTime=max(dat),priParams,M=1000,nEvents=length(dat[,1]),shouldjT="T"){
+gompPost<-function(dat,currTime=max(dat),priParams,M=1000,nEvents=length(dat[,1]),shouldjT="T",totAcc=2*nEvents){
   ind_i<-which(dat[,2]>0)  #ind_i are uncensored values
   n_i=length(ind_i)
   shpePost<-length(dat[,1])+1
@@ -327,7 +343,12 @@ gompPost<-function(dat,currTime=max(dat),priParams,M=1000,nEvents=length(dat[,1]
   
   f_theta_c<-dgamma(b_c, A_b, B_b)*dgamma(eta_c, A_eta, B_eta)
   lT<-rgamma(1,shape=shpePost,scale=1/currTime)
-  if(shouldjT){ jT<-currTime+cumsum(rexp(2*nEvents,rate=lT)) }
+  
+  simN=totAcc-dim(dat)[1]
+  simN=max(c(simN,0))
+  if(simN==0){shouldJT=0}
+  
+  if(shouldjT){ jT<-currTime+cumsum(rexp(simN,rate=lT)) }
   else{jT=-1}
   rndTime<-gompTime(dat,params=c(eta_c,b_c), nEvents,currTime,jT=jT)
   
@@ -355,7 +376,7 @@ gompPost<-function(dat,currTime=max(dat),priParams,M=1000,nEvents=length(dat[,1]
     eta<-c(eta,eta_c)
     b<-c(b,b_c)
     lT<-rgamma(1,shape=shpePost,scale=1/currTime)
-    if(shouldjT){    jT<-currTime+cumsum(rexp(2*nEvents,rate=lT))}
+    if(shouldjT){    jT<-currTime+cumsum(rexp(simN,rate=lT))}
     rndTime<-c(rndTime,gompTime(dat,params=c(eta_c,b_c), nEvents,currTime,jT=jT))
     if(i/100==round(i/100)){
       c<-(mean(diff(eta[(i-99):i])==0)/.7)
@@ -424,6 +445,8 @@ logNormTime<-function(dat,params, nEvents,currTime,jT){
 #     of the log-normal  distribution. (normal prior for mu, gamma prior for sigma)
 #   M - the number of Monte Carlo iterations
 #   nEvents - number of events needed to complete the study.
+#   totAcc - the total number of subjects to accrue. Must be greater than nE, otherwise the 
+#       program will not terminate.
 # Return - A matrix of size M x 3 
 #   Columns 1 & 2 mu,sigma - sequence of parameter values of the MCMC with the 
 #       starting point being the MLE.
@@ -431,7 +454,7 @@ logNormTime<-function(dat,params, nEvents,currTime,jT){
 #     for each of the parameter values in mu, sigma
 #######################################
 
-logNormPost<-function(dat,currTime=max(dat),priParams,M=1000,nEvents=length(dat[,1]),shouldjT="T"){
+logNormPost<-function(dat,currTime=max(dat),priParams,M=1000,nEvents=length(dat[,1]),shouldjT="T",totAcc=2*nEvents){
   ind_i<-which(dat[,2]>0)  #ind_i are uncensored values
   shpePost<-length(dat[,1])+1
   n_i=length(ind_i)
@@ -454,7 +477,12 @@ logNormPost<-function(dat,currTime=max(dat),priParams,M=1000,nEvents=length(dat[
   DD_c<-prod( pnorm(I(mu_c-lx_j)/(sqrt(2)*sig_c)))
   f_theta_c<-dnorm(mu,muPrior,sigPrior)*dgamma(sig,A_sig,B_sig)
   lT<-rgamma(1,shape=shpePost,scale=1/currTime)
-  if(shouldjT){ jT<-currTime+cumsum(rexp(2*nEvents,rate=lT)) }
+  
+  simN=totAcc-dim(dat)[1]
+  simN=max(c(simN,0))
+  if(simN==0){shouldJT=0}
+  
+  if(shouldjT){ jT<-currTime+cumsum(rexp(simN,rate=lT)) }
   else{jT=-1}
   rndTime<-logNormTime(dat,params=c(mu_c,sig_c), nEvents,currTime,jT)
   for(i in 1:M){
@@ -479,7 +507,7 @@ logNormPost<-function(dat,currTime=max(dat),priParams,M=1000,nEvents=length(dat[
     mu<-c(mu,mu_c)
     sig<-c(sig,sig_c)
     lT<-rgamma(1,shape=shpePost,scale=1/currTime)
-    if(shouldjT){    jT<-currTime+cumsum(rexp(2*nEvents,rate=lT))}
+    if(shouldjT){    jT<-currTime+cumsum(rexp(simN,rate=lT))}
     rndTime<-c(rndTime,logNormTime(dat,params=c(mu_c,sig_c), nEvents,currTime,jT))
     if(i/100==round(i/100)){
       c<-(mean(diff(sig[(i-99):i])==0)/.7)
@@ -542,6 +570,8 @@ truncDatSim<-function(dat,nEvents,P){
 #   wP,lnP,gP,llP - Prior parameters for Weibull, log-normal, gompertz, and log-logistic 
 #       distributions (respectfully).
 #   MM - number of observations in the MCMC chain for each posterior distribution
+#   totAcc - the total number of subjects to accrue. Must be greater than nE, otherwise the 
+#       program will not terminate.
 # Return - 
 #  preds:  a vector givin the predictions for each Bayesian method in the following order
 #         Weibull
@@ -553,17 +583,17 @@ truncDatSim<-function(dat,nEvents,P){
 #                                 Vote
 #######################################
 
-getBayes<-function(dat,nE,wP,lnP,gP,llP,MM=5000){
+getBayes<-function(dat,nE,wP,lnP,gP,llP,MM=5000,totAcc=2*nE){
   MMstrt<-round(MM/3)
   cTime<-max(dat)
   preds<-rep(0,7)
-  predsA<-weibPost(dat,currTime=cTime,priParams=wP,M=MM,nEvents=nE )
+  predsA<-weibPost(dat,currTime=cTime,priParams=wP,M=MM,nEvents=nE,1,totAcc )
   preds[1]<-mean(predsA[MMstrt:MM,3])
-  predsB<-logNormPost(dat,currTime=cTime,priParams=lnP,M=MM,nEvents=nE )
+  predsB<-logNormPost(dat,currTime=cTime,priParams=lnP,M=MM,nEvents=nE,1,totAcc )
   preds[2]<-mean(predsB[MMstrt:MM,3])
-  predsC<-gompPost(dat,currTime=cTime,priParams=gP,M=MM,nEvents=nE)
+  predsC<-gompPost(dat,currTime=cTime,priParams=gP,M=MM,nEvents=nE,1,totAcc)
   preds[3]<-mean(predsC[MMstrt:MM,3])
-  predsD<-logLogPost(dat,currTime=cTime,priParams=llP,M=MM,nEvents=nE )
+  predsD<-logLogPost(dat,currTime=cTime,priParams=llP,M=MM,nEvents=nE,1,totAcc )
   preds[4]<-mean(predsD[MMstrt:MM,3])
   
   tmp<-wtsBayes(dat,cTime,MM=100,K=6,predsA[,1:2],predsB[,1:2],predsC[,1:2],predsD[,1:2])
@@ -589,6 +619,8 @@ getBayes<-function(dat,nE,wP,lnP,gP,llP,MM=5000){
 #   wP,lnP,gP,llP - Prior parameters for Weibull, log-normal, gompertz, and log-logistic 
 #       distributions (respectfully).
 #   MM - number of observations in the MCMC chain for each posterior distribution
+#   totAcc - the total number of subjects to accrue. Must be greater than nE, otherwise the 
+#       program will not terminate.
 # Return - 
 #  preds:  a vector givin the predictions for each Bayesian method in the following order
 #         Weibull
@@ -600,18 +632,18 @@ getBayes<-function(dat,nE,wP,lnP,gP,llP,MM=5000){
 #                                 Vote
 #######################################
 
-getBayesInt<-function(dat,nE,wP,lnP,gP,llP,MM=5000,alpha=.05,addjT=1){
+getBayesInt<-function(dat,nE,wP,lnP,gP,llP,MM=5000,totAcc=2*nE,alpha=.05,addjT=1){
   MMstrt<-round(MM/3)
   cTime<-max(dat)
   preds<-rep(0,7)
   
-  predsA<-weibPost(dat,currTime=cTime,priParams=wP,M=MM,nEvents=nE,shouldjT=addjT  )
+  predsA<-weibPost(dat,currTime=cTime,priParams=wP,M=MM,nEvents=nE,shouldjT=addjT,totAcc)
   preds[1]<-mean(predsA[MMstrt:MM,3])
-  predsB<-logNormPost(dat,currTime=cTime,priParams=lnP,M=MM,nEvents=nE,shouldjT=addjT )
+  predsB<-logNormPost(dat,currTime=cTime,priParams=lnP,M=MM,nEvents=nE,shouldjT=addjT,totAcc)
   preds[2]<-mean(predsB[MMstrt:MM,3])
-  predsC<-gompPost(dat,currTime=cTime,priParams=gP,M=MM,nEvents=nE,shouldjT=addjT )
+  predsC<-gompPost(dat,currTime=cTime,priParams=gP,M=MM,nEvents=nE,shouldjT=addjT,totAcc )
   preds[3]<-mean(predsC[MMstrt:MM,3])
-  predsD<-logLogPost(dat,currTime=cTime,priParams=llP,M=MM,nEvents=nE ,shouldjT=addjT )
+  predsD<-logLogPost(dat,currTime=cTime,priParams=llP,M=MM,nEvents=nE ,shouldjT=addjT,totAcc)
   preds[4]<-mean(predsD[MMstrt:MM,3])
   
   tmp<-wtsBayes(dat,cTime,MM=100,K=6,predsA[,1:2],predsB[,1:2],predsC[,1:2],predsD[,1:2])
